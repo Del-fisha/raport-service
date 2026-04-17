@@ -5,7 +5,6 @@ import com.github.aleksandy.petrovich.Case;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
-import raport.dto.PersonDto;
 import raport.model.RaportData;
 import raport.service.DeclensionService;
 
@@ -25,22 +24,19 @@ public class CompensatoryTimeService {
     private final DeclensionService declensionService;
 
     public String generateAndSaveReport(RaportData data) throws IOException {
-        Map templateData = new HashMap<>();
+        Map<String, String> templateData = new HashMap<>();
 
-        // Начальник (Кому? - Дательный падеж)
         templateData.put("commanderFullPost", declensionService.declineRankOrPosition(data.getRecipient().getPosition()));
         templateData.put("commanderRank", declensionService.declineRankOrPosition(data.getRecipient().getRank()));
         templateData.put("commanderFullName", declensionService.getDeclinedShortName(data.getRecipient(), Case.DATIVE));
 
         templateData.put("compensatoryTimeDate", data.getDayOffDate());
 
-        // Сотрудник (Именительный падеж, формат Фамилия И.О.)
         templateData.put("employeeFullPost", data.getEmployee().getPosition());
         templateData.put("employeeRank", data.getEmployee().getRank());
         templateData.put("employeeFullName", declensionService.getDeclinedShortName(data.getEmployee(), Case.NOMINATIVE));
         templateData.put("reportDate", data.getReportDate());
 
-        // Ходатай
         if (data.getInterceder() != null) {
             templateData.put("petitionerFullPost", declensionService.declineRankOrPosition(data.getInterceder().getPosition()));
             templateData.put("petitionerRank", declensionService.declineRankOrPosition(data.getInterceder().getRank()));
@@ -48,7 +44,7 @@ public class CompensatoryTimeService {
         }
 
         byte[] bytes;
-        try (InputStream is = new ClassPathResource("templates/compensatory_time_template.docx").getInputStream()) {
+        try (InputStream is = new ClassPathResource("templates/compensatory_time_template_2.docx").getInputStream()) {
             XWPFTemplate template = XWPFTemplate.compile(is).render(templateData);
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             template.write(bos);
@@ -56,7 +52,7 @@ public class CompensatoryTimeService {
             bytes = bos.toByteArray();
         }
 
-        String fileName = "Рапорт_отгул_" + data.getEmployee().getLastName() + "_" + System.currentTimeMillis() + ".docx";
+        String fileName = "Отгул_" + data.getEmployee().getLastName() + "_" + System.currentTimeMillis() + ".docx";
         Path directory = Paths.get("output_reports");
         if (!Files.exists(directory)) {
             Files.createDirectories(directory);

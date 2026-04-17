@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import raport.dto.PersonDto;
 
 import java.util.Map;
+import java.util.Map.Entry;
 
 @Service
 public class DeclensionService {
@@ -15,7 +16,7 @@ public class DeclensionService {
     private static final Map<String, String> RANK_DECLENSIONS = Map.of(
             "Полковник", "Полковнику",
             "Капитан", "Капитану",
-            "майор", "майору",
+            "Майор", "Майору",
             "Лейтенант", "Лейтенанту",
             "Сержант", "Сержанту",
             "Начальник", "Начальнику",
@@ -25,7 +26,6 @@ public class DeclensionService {
     public String getDeclinedShortName(PersonDto person, Case targetCase) {
         Gender gender = "FEMALE".equalsIgnoreCase(person.getGender()) ? Gender.FEMALE : Gender.MALE;
 
-        // ВАЖНО: Порядок в этой библиотеке: Фамилия, Имя, Отчество!
         Petrovich.Names originalNames = new Petrovich.Names(
                 person.getLastName(),
                 person.getFirstName(),
@@ -35,13 +35,11 @@ public class DeclensionService {
 
         Petrovich.Names declinedNames = petrovich.inflectTo(originalNames, targetCase);
 
-        // Инициалы
         String f = (declinedNames.firstName != null && !declinedNames.firstName.isEmpty())
                 ? declinedNames.firstName.substring(0, 1).toUpperCase() + "." : "";
         String m = (declinedNames.middleName != null && !declinedNames.middleName.isEmpty())
                 ? declinedNames.middleName.substring(0, 1).toUpperCase() + "." : "";
 
-        // Возвращаем: Петрову А.С. (если Дательный) или Иванов И.И. (если Именительный)
         return String.format("%s %s%s", declinedNames.lastName, f, m);
     }
 
@@ -49,14 +47,13 @@ public class DeclensionService {
         if (text == null || text.isEmpty()) return "";
 
         String result = text.toLowerCase();
-        for (Map.Entry entry : RANK_DECLENSIONS.entrySet()) {
-            String key = entry.getKey().toString();
-            String value = entry.getValue().toString();
+        for (Entry<String, String> entry : RANK_DECLENSIONS.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
             if (result.contains(key)) {
                 result = result.replace(key, value);
             }
         }
-        // Возврат с заглавной буквы
         return result.substring(0, 1).toUpperCase() + result.substring(1);
     }
 }
