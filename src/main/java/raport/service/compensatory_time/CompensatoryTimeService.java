@@ -55,7 +55,7 @@ public class CompensatoryTimeService {
         }
 
         byte[] bytes;
-        try (InputStream is = new ClassPathResource("templates/compensatory_time_template_2.docx").getInputStream()) {
+        try (InputStream is = new ClassPathResource("templates/compensatory_time_template.docx").getInputStream()) {
             XWPFTemplate template = XWPFTemplate.compile(is).render(templateData);
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             template.write(bos);
