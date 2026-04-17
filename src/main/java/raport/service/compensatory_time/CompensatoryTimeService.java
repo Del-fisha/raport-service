@@ -26,20 +26,31 @@ public class CompensatoryTimeService {
     public String generateAndSaveReport(RaportData data) throws IOException {
         Map<String, String> templateData = new HashMap<>();
 
+        String commanderRankRaw = data.getRecipient().getRank();
+        String commanderRankUpper = (commanderRankRaw != null && !commanderRankRaw.isBlank())
+                ? Character.toUpperCase(commanderRankRaw.charAt(0)) + commanderRankRaw.substring(1)
+                : "";
         templateData.put("commanderFullPost", declensionService.declineRankOrPosition(data.getRecipient().getPosition()));
-        templateData.put("commanderRank", declensionService.declineRankOrPosition(data.getRecipient().getRank()));
+        templateData.put("commanderRank", declensionService.declineRankOrPosition(commanderRankUpper));
         templateData.put("commanderFullName", declensionService.getDeclinedShortName(data.getRecipient(), Case.DATIVE));
 
         templateData.put("compensatoryTimeDate", data.getDayOffDate());
 
+        String employeeRankRaw = data.getEmployee().getRank();
+        String employeeRankUpper = (employeeRankRaw != null && !employeeRankRaw.isBlank())
+                ? Character.toUpperCase(employeeRankRaw.charAt(0)) + employeeRankRaw.substring(1)
+                : "";
         templateData.put("employeeFullPost", data.getEmployee().getPosition());
-        templateData.put("employeeRank", data.getEmployee().getRank());
+        templateData.put("employeeRank", employeeRankUpper);
         templateData.put("employeeFullName", declensionService.getDeclinedShortName(data.getEmployee(), Case.NOMINATIVE));
         templateData.put("reportDate", data.getReportDate());
-
-        if (data.getInterceder() != null) {
-            templateData.put("petitionerFullPost", declensionService.declineRankOrPosition(data.getInterceder().getPosition()));
-            templateData.put("petitionerRank", declensionService.declineRankOrPosition(data.getInterceder().getRank()));
+                if (data.getInterceder() != null) {
+                    String intercederRankRaw = data.getInterceder().getRank();
+                    String intercederRankUpper = (intercederRankRaw != null && !intercederRankRaw.isBlank())
+                            ? Character.toUpperCase(intercederRankRaw.charAt(0)) + intercederRankRaw.substring(1)
+                            : "";
+            templateData.put("petitionerFullPost", data.getInterceder().getPosition());
+            templateData.put("petitionerRank", intercederRankUpper);
             templateData.put("petitionerFullName", declensionService.getDeclinedShortName(data.getInterceder(), Case.NOMINATIVE));
         }
 

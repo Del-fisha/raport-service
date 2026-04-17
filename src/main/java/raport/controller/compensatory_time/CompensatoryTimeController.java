@@ -1,4 +1,4 @@
-package raport.controller;
+package raport.controller.compensatory_time;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;

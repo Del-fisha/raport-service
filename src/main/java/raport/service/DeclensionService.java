@@ -5,23 +5,13 @@ import com.github.aleksandy.petrovich.Gender;
 import com.github.aleksandy.petrovich.Petrovich;
 import org.springframework.stereotype.Service;
 import raport.dto.PersonDto;
-
-import java.util.Map;
-import java.util.Map.Entry;
+import raport.service.declension.DeclensionChain;
 
 @Service
 public class DeclensionService {
-    private final Petrovich petrovich = new Petrovich();
 
-    private static final Map<String, String> RANK_DECLENSIONS = Map.of(
-            "Полковник", "Полковнику",
-            "Капитан", "Капитану",
-            "Майор", "Майору",
-            "Лейтенант", "Лейтенанту",
-            "Сержант", "Сержанту",
-            "Начальник", "Начальнику",
-            "Командир", "Командиру"
-    );
+    private final Petrovich petrovich = new Petrovich();
+    private final DeclensionChain declensionChain = new DeclensionChain();
 
     public String getDeclinedShortName(PersonDto person, Case targetCase) {
         Gender gender = "FEMALE".equalsIgnoreCase(person.getGender()) ? Gender.FEMALE : Gender.MALE;
@@ -44,16 +34,7 @@ public class DeclensionService {
     }
 
     public String declineRankOrPosition(String text) {
-        if (text == null || text.isEmpty()) return "";
-
-        String result = text.toLowerCase();
-        for (Entry<String, String> entry : RANK_DECLENSIONS.entrySet()) {
-            String key = entry.getKey();
-            String value = entry.getValue();
-            if (result.contains(key)) {
-                result = result.replace(key, value);
-            }
-        }
-        return result.substring(0, 1).toUpperCase() + result.substring(1);
+        if (text == null || text.isBlank()) return "";
+        return declensionChain.decline(text.trim());
     }
 }
