@@ -3,3 +3,6 @@ spring:
     name: raport-service
 server:
   port: 8082
+
+app:
+  output_reports: output_reports
