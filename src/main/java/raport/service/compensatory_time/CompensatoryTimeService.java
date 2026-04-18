@@ -63,7 +63,11 @@ public class CompensatoryTimeService {
             bytes = bos.toByteArray();
         }
 
-        String fileName = "Отгул_" + data.getEmployee().getLastName() + "_" + System.currentTimeMillis() + ".docx";
+        String fileName = String.format("Отгул (%s %s.) за %s",
+                data.getEmployee().getLastName(),
+                data.getEmployee().getFirstName().charAt(0),
+                data.getDayOffDate());
+
         Path directory = Paths.get("output_reports");
         if (!Files.exists(directory)) {
             Files.createDirectories(directory);
