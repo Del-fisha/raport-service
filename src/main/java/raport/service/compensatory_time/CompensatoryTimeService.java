@@ -63,7 +63,7 @@ public class CompensatoryTimeService {
             bytes = bos.toByteArray();
         }
 
-        String fileName = String.format("Отгул (%s %s.) за %s",
+        String fileName = String.format("Отгул (%s %s.) за %s.docx",
                 data.getEmployee().getLastName(),
                 data.getEmployee().getFirstName().charAt(0),
                 data.getDayOffDate());
