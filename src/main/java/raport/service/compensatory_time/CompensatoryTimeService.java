@@ -7,6 +7,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import raport.model.RaportData;
 import raport.service.DeclensionService;
+import raport.service.pdf.DocxToPdfConverter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
@@ -22,6 +23,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CompensatoryTimeService {
     private final DeclensionService declensionService;
+    private final DocxToPdfConverter docxToPdfConverter;
 
     public String generateAndSaveReport(RaportData data) throws IOException {
         Map<String, String> templateData = new HashMap<>();
@@ -44,24 +46,22 @@ public class CompensatoryTimeService {
         templateData.put("employeeRank", employeeRankUpper);
         templateData.put("employeeFullName", declensionService.getDeclinedShortName(data.getEmployee(), Case.NOMINATIVE));
         templateData.put("reportDate", data.getReportDate());
-                if (data.getInterceder() != null) {
-                    String intercederRankRaw = data.getInterceder().getRank();
-                    String intercederRankUpper = (intercederRankRaw != null && !intercederRankRaw.isBlank())
-                            ? Character.toUpperCase(intercederRankRaw.charAt(0)) + intercederRankRaw.substring(1)
-                            : "";
+
+        if (data.getInterceder() != null) {
+            String intercederRankRaw = data.getInterceder().getRank();
+            String intercederRankUpper = (intercederRankRaw != null && !intercederRankRaw.isBlank())
+                    ? Character.toUpperCase(intercederRankRaw.charAt(0)) + intercederRankRaw.substring(1)
+                    : "";
             templateData.put("petitionerFullPost", data.getInterceder().getPosition());
             templateData.put("petitionerRank", intercederRankUpper);
             templateData.put("petitionerFullName", declensionService.getDeclinedShortName(data.getInterceder(), Case.NOMINATIVE));
+        } else {
+            templateData.put("petitionerFullPost", "");
+            templateData.put("petitionerRank", "");
+            templateData.put("petitionerFullName", "");
         }
 
-        byte[] bytes;
-        try (InputStream is = new ClassPathResource("templates/compensatory_time_template.docx").getInputStream()) {
-            XWPFTemplate template = XWPFTemplate.compile(is).render(templateData);
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            template.write(bos);
-            template.close();
-            bytes = bos.toByteArray();
-        }
+        byte[] bytes = renderDocxBytes(templateData);
 
         String fileName = String.format("Отгул (%s %s.) за %s.docx",
                 data.getEmployee().getLastName(),
@@ -77,6 +77,24 @@ public class CompensatoryTimeService {
             fos.write(bytes);
         }
 
+        try {
+            Path abs = filePath.toAbsolutePath();
+            docxToPdfConverter.convert(abs);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupted while converting DOCX to PDF", e);
+        }
+
         return filePath.toAbsolutePath().toString();
+    }
+
+    byte[] renderDocxBytes(Map<String, String> templateData) throws IOException {
+        try (InputStream is = new ClassPathResource("templates/compensatory_time_template.docx").getInputStream()) {
+            XWPFTemplate template = XWPFTemplate.compile(is).render(templateData);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            template.write(bos);
+            template.close();
+            return bos.toByteArray();
+        }
     }
 }

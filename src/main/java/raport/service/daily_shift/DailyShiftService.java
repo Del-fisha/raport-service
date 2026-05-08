@@ -7,6 +7,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import raport.model.DailyShiftRaportData;
 import raport.service.DeclensionService;
+import raport.service.pdf.DocxToPdfConverter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
@@ -24,6 +25,7 @@ public class DailyShiftService {
 
     private final DeclensionService declensionService;
     private final RankPositionGenitiveService genitiveService;
+    private final DocxToPdfConverter docxToPdfConverter;
 
     public String generateAndSaveReport(DailyShiftRaportData data) throws IOException {
         Map<String, String> templateData = new HashMap<>();
@@ -61,14 +63,7 @@ public class DailyShiftService {
             templateData.put("petitionerFullName", "");
         }
 
-        byte[] bytes;
-        try (InputStream is = new ClassPathResource("templates/shift_rescheduling_template.docx").getInputStream()) {
-            XWPFTemplate template = XWPFTemplate.compile(is).render(templateData);
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            template.write(bos);
-            template.close();
-            bytes = bos.toByteArray();
-        }
+        byte[] bytes = renderDocxBytes(templateData);
 
         String fileName = String.format("Сутки (%s %s.) %s.docx",
                 safe(data.getEmployee() == null ? null : data.getEmployee().getLastName(), "Сотрудник"),
@@ -84,7 +79,25 @@ public class DailyShiftService {
             fos.write(bytes);
         }
 
+        try {
+            Path abs = filePath.toAbsolutePath();
+            docxToPdfConverter.convert(abs);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupted while converting DOCX to PDF", e);
+        }
+
         return filePath.toAbsolutePath().toString();
+    }
+
+    byte[] renderDocxBytes(Map<String, String> templateData) throws IOException {
+        try (InputStream is = new ClassPathResource("templates/shift_rescheduling_template.docx").getInputStream()) {
+            XWPFTemplate template = XWPFTemplate.compile(is).render(templateData);
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            template.write(bos);
+            template.close();
+            return bos.toByteArray();
+        }
     }
 
     private static String upperFirst(String s) {
