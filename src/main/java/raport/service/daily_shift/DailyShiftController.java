@@ -1,4 +1,4 @@
-package raport.controller.compensatory_time;
+package raport.service.daily_shift;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -8,8 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import raport.model.RaportData;
-import raport.service.compensatory_time.CompensatoryTimeService;
+import raport.model.DailyShiftRaportData;
 import raport.service.pdf.GeneratedFile;
 import raport.service.pdf.PdfReportFacade;
 
@@ -18,29 +17,28 @@ import java.io.IOException;
 @RestController
 @RequestMapping("/api/reports")
 @RequiredArgsConstructor
-public class CompensatoryTimeController {
+public class DailyShiftController {
 
-    private final CompensatoryTimeService generatorService;
+    private final DailyShiftService generatorService;
     private final PdfReportFacade pdfReportFacade;
 
-    @PostMapping("/otgul")
-    public ResponseEntity<String> createCompensatoryTimeReport(@RequestBody RaportData request) {
+    @PostMapping("/sutki")
+    public ResponseEntity<String> createDailyShiftReport(@RequestBody DailyShiftRaportData request) {
         try {
             String filePath = generatorService.generateAndSaveReport(request);
-
             return ResponseEntity.ok()
                     .contentType(MediaType.TEXT_PLAIN)
-                    .body("Рапорт ГУ МВД успешно сформирован. Путь к файлу: " + filePath);
+                    .body("Рапорт успешно сформирован. Путь к файлу: " + filePath);
         } catch (IOException e) {
             return ResponseEntity.internalServerError()
                     .body("Ошибка при генерации рапорта: " + e.getMessage());
         }
     }
 
-    @PostMapping("/otgul/pdf")
-    public ResponseEntity<byte[]> createCompensatoryTimeReportPdf(@RequestBody RaportData request) {
+    @PostMapping("/sutki/pdf")
+    public ResponseEntity<byte[]> createDailyShiftReportPdf(@RequestBody DailyShiftRaportData request) {
         try {
-            GeneratedFile pdf = pdfReportFacade.createOtgulPdf(request);
+            GeneratedFile pdf = pdfReportFacade.createSutkiPdf(request);
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_PDF)
                     .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + pdf.fileName() + "\"")
