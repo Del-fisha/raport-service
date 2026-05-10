@@ -9,9 +9,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import raport.model.RaportData;
+import raport.model.ServiceBookSupplementData;
 import raport.service.compensatory_time.CompensatoryTimeService;
 import raport.service.pdf.GeneratedFile;
 import raport.service.pdf.PdfReportFacade;
+import raport.service.service_book.ServiceBookSupplementService;
 
 import java.io.IOException;
 
@@ -22,6 +24,7 @@ public class CompensatoryTimeController {
 
     private final CompensatoryTimeService generatorService;
     private final PdfReportFacade pdfReportFacade;
+    private final ServiceBookSupplementService serviceBookSupplementService;
 
     @PostMapping("/otgul")
     public ResponseEntity<String> createCompensatoryTimeReport(@RequestBody RaportData request) {
@@ -54,6 +57,39 @@ public class CompensatoryTimeController {
             return ResponseEntity.internalServerError()
                     .contentType(MediaType.TEXT_PLAIN)
                     .body("Ошибка при генерации рапорта: interrupted".getBytes());
+        }
+    }
+
+    @PostMapping("/service-book")
+    public ResponseEntity<String> createServiceBookSupplement(@RequestBody ServiceBookSupplementData request) {
+        try {
+            String filePath = serviceBookSupplementService.generateAndSaveReport(request);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("Документ успешно сформирован. Путь к файлу: " + filePath);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError()
+                    .body("Ошибка при генерации документа: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/service-book/pdf")
+    public ResponseEntity<byte[]> createServiceBookSupplementPdf(@RequestBody ServiceBookSupplementData request) {
+        try {
+            GeneratedFile pdf = pdfReportFacade.createServiceBookSupplementPdf(request);
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + pdf.fileName() + "\"")
+                    .body(pdf.bytes());
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(("Ошибка при генерации документа: " + e.getMessage()).getBytes());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return ResponseEntity.internalServerError()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body("Ошибка при генерации документа: interrupted".getBytes());
         }
     }
 }

@@ -4,8 +4,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,14 +15,14 @@ import java.util.List;
 @Service
 public class LibreOfficeDocxToPdfConverter implements DocxToPdfConverter {
 
-    private final String sofficeCommand;
+    private final String sofficeCommandRaw;
     private final Duration timeout;
 
     public LibreOfficeDocxToPdfConverter(
             @Value("${app.libreoffice.soffice_command:soffice}") String sofficeCommand,
             @Value("${app.libreoffice.timeout_seconds:30}") long timeoutSeconds
     ) {
-        this.sofficeCommand = sofficeCommand;
+        this.sofficeCommandRaw = sofficeCommand;
         this.timeout = Duration.ofSeconds(timeoutSeconds);
     }
 
@@ -38,6 +40,8 @@ public class LibreOfficeDocxToPdfConverter implements DocxToPdfConverter {
             throw new IOException("DOCX has no parent dir: " + docxPath);
         }
 
+        String sofficeCommand = resolveSofficeCommand();
+
         List<String> cmd = new ArrayList<>();
         cmd.add(sofficeCommand);
         cmd.add("--headless");
@@ -50,9 +54,17 @@ public class LibreOfficeDocxToPdfConverter implements DocxToPdfConverter {
         cmd.add(outDir.toString());
         cmd.add(docxPath.toAbsolutePath().toString());
 
-        Process process = new ProcessBuilder(cmd)
-                .redirectErrorStream(true)
-                .start();
+        Process process;
+        try {
+            process = new ProcessBuilder(cmd)
+                    .redirectErrorStream(true)
+                    .start();
+        } catch (IOException e) {
+            // On Windows it is common to not have soffice in PATH. Provide a clear error.
+            throw new IOException("LibreOffice 'soffice' not found. " +
+                    "Install LibreOffice or set app.libreoffice.soffice_command to soffice.exe full path. " +
+                    "Tried command: " + sofficeCommand, e);
+        }
 
         boolean finished = process.waitFor(timeout.toMillis(), java.util.concurrent.TimeUnit.MILLISECONDS);
         if (!finished) {
@@ -72,6 +84,66 @@ public class LibreOfficeDocxToPdfConverter implements DocxToPdfConverter {
             throw new IOException("PDF not created at expected path: " + pdfPath);
         }
         return pdfPath;
+    }
+
+    private String resolveSofficeCommand() {
+        String raw = sofficeCommandRaw == null ? "" : sofficeCommandRaw.trim();
+        if (!raw.isBlank() && !"soffice".equalsIgnoreCase(raw)) {
+            return raw;
+        }
+
+        // If PATH resolution works, keep it.
+        if (!raw.isBlank()) {
+            return raw;
+        }
+
+        // Windows: try common LibreOffice install locations.
+        if (isWindows()) {
+            List<Path> candidates = new ArrayList<>();
+            candidates.add(Path.of("C:\\Program Files\\LibreOffice\\program\\soffice.exe"));
+            candidates.add(Path.of("C:\\Program Files (x86)\\LibreOffice\\program\\soffice.exe"));
+
+            for (Path p : candidates) {
+                if (Files.exists(p)) {
+                    return p.toString();
+                }
+            }
+
+            // Fallback: scan "Program Files\\LibreOffice*" folders (rare custom install paths).
+            candidates.clear();
+            candidates.add(Path.of("C:\\Program Files"));
+            candidates.add(Path.of("C:\\Program Files (x86)"));
+            for (Path root : candidates) {
+                Path found = tryFindSofficeUnder(root);
+                if (found != null) {
+                    return found.toString();
+                }
+            }
+        }
+
+        return "soffice";
+    }
+
+    private static boolean isWindows() {
+        String os = System.getProperty("os.name");
+        return os != null && os.toLowerCase().contains("win");
+    }
+
+    private static Path tryFindSofficeUnder(Path programFilesRoot) {
+        if (programFilesRoot == null || !Files.isDirectory(programFilesRoot)) {
+            return null;
+        }
+        try (DirectoryStream<Path> ds = Files.newDirectoryStream(programFilesRoot, "LibreOffice*")) {
+            for (Path loDir : ds) {
+                Path exe = loDir.resolve(Paths.get("program", "soffice.exe"));
+                if (Files.exists(exe)) {
+                    return exe;
+                }
+            }
+        } catch (Exception ignored) {
+            // ignore
+        }
+        return null;
     }
 
     private static Path replaceExtension(Path p, String newExtWithDot) {
