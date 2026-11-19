@@ -25,7 +25,7 @@ public class CompositePhraseStrategy implements DeclensionStrategy {
         if (lower.startsWith("врио")) {
             String after = trimmed.substring("врио".length()).trim();
             if (after.equalsIgnoreCase("начальник")) {
-                return "Врио начальнику";
+                return "Врио начальника";
             }
         }
         return null;
