@@ -24,7 +24,7 @@ public class ExactMatchStrategy implements DeclensionStrategy {
 
         dictionary.put("Заместитель", "Заместителю");
         dictionary.put("Начальник", "Начальнику");
-        dictionary.put("Врио начальник", "Врио начальнику");
+        dictionary.put("Врио начальник", "Врио начальника");
     }
 
     @Override

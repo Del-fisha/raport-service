@@ -3,6 +3,7 @@ package raport.service.daily_shift;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -16,23 +17,23 @@ public class RankPositionGenitiveService {
 
     public RankPositionGenitiveService() {
         // звания (ед.ч., м.р.)
-        dict.put("Полковник", "полковника");
-        dict.put("Подполковник", "подполковника");
-        dict.put("Майор", "майора");
-        dict.put("Капитан", "капитана");
-        dict.put("Старший лейтенант", "старшего лейтенанта");
-        dict.put("Лейтенант", "лейтенанта");
-        dict.put("Младший лейтенант", "младшего лейтенанта");
-        dict.put("Прапорщик", "прапорщика");
-        dict.put("Старший прапорщик", "старшего прапорщика");
-        dict.put("Старший сержант", "старшего сержанта");
-        dict.put("Сержант", "сержанта");
-        dict.put("Младший сержант", "младшего сержанта");
+        dict.put("полковник", "полковника");
+        dict.put("подполковник", "подполковника");
+        dict.put("майор", "майора");
+        dict.put("капитан", "капитана");
+        dict.put("старший лейтенант", "старшего лейтенанта");
+        dict.put("лейтенант", "лейтенанта");
+        dict.put("младший лейтенант", "младшего лейтенанта");
+        dict.put("прапорщик", "прапорщика");
+        dict.put("старший прапорщик", "старшего прапорщика");
+        dict.put("старший сержант", "старшего сержанта");
+        dict.put("сержант", "сержанта");
+        dict.put("младший сержант", "младшего сержанта");
 
         // типовые должностные слова (первое слово в должности)
-        dict.put("Командир", "командира");
-        dict.put("Инспектор", "инспектора");
-        dict.put("Полицейский", "полицейского");
+        dict.put("командир", "командира");
+        dict.put("инспектор", "инспектора");
+        dict.put("полицейский", "полицейского");
     }
 
     public String toGenitive(String text) {
@@ -41,19 +42,20 @@ public class RankPositionGenitiveService {
         }
 
         String trimmed = text.trim();
-        String normalized = Character.toUpperCase(trimmed.charAt(0)) + trimmed.substring(1);
-        String direct = dict.get(normalized);
+        String key = trimmed.toLowerCase(Locale.forLanguageTag("ru"));
+        String direct = dict.get(key);
         if (direct != null) {
             return direct;
         }
 
         // Частый кейс: "Командир отдельного взвода ..." — склоняем первое слово, остальное оставляем.
-        String[] parts = normalized.split("\\s+", 2);
+        String[] parts = key.split("\\s+", 2);
         if (parts.length == 2) {
-            String first = parts[0];
-            String declinedFirst = dict.get(first);
+            String declinedFirst = dict.get(parts[0]);
             if (declinedFirst != null) {
-                return declinedFirst + " " + parts[1];
+                int restAt = trimmed.indexOf(' ');
+                String rest = restAt >= 0 ? trimmed.substring(restAt + 1) : parts[1];
+                return declinedFirst + " " + rest;
             }
         }
 
