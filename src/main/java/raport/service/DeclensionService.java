@@ -44,7 +44,7 @@ public class DeclensionService {
         String m = (declinedNames.middleName != null && !declinedNames.middleName.isEmpty())
                 ? declinedNames.middleName.substring(0, 1).toUpperCase() + "." : "";
 
-        return String.format("%s %s%s", lastName, f, m);
+        return String.format("%s%s %s", f, m, lastName);
     }
 
     /**

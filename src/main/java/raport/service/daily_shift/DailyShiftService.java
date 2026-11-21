@@ -31,18 +31,18 @@ public class DailyShiftService {
         Map<String, String> templateData = new HashMap<>();
 
         // кому рапорт (дательный падеж)
-        String commanderRankUpper = upperFirst(data.getRecipient() == null ? null : data.getRecipient().getRank());
         templateData.put("commanderFullPost",
                 declensionService.declineRankOrPosition(data.getRecipient() == null ? null : data.getRecipient().getPosition()));
-        templateData.put("commanderRank", declensionService.declineRankOrPosition(commanderRankUpper));
+        templateData.put("commanderRank",
+                declensionService.declineRankOrPosition(data.getRecipient() == null ? null : data.getRecipient().getRank()));
         templateData.put("commanderFullName",
                 data.getRecipient() == null ? "" : declensionService.getDeclinedShortName(data.getRecipient(), Case.DATIVE));
 
         // сотрудник (родительный падеж)
-        String employeeRankUpper = upperFirst(data.getEmployee() == null ? null : data.getEmployee().getRank());
         templateData.put("employeeFullPost",
                 genitiveService.toGenitive(data.getEmployee() == null ? null : data.getEmployee().getPosition()));
-        templateData.put("employeeRank", genitiveService.toGenitive(employeeRankUpper));
+        templateData.put("employeeRank",
+                genitiveService.toGenitive(data.getEmployee() == null ? null : data.getEmployee().getRank()));
         templateData.put("employeeFullName",
                 data.getEmployee() == null ? "" : declensionService.getDeclinedShortName(data.getEmployee(), Case.GENITIVE));
 
@@ -55,7 +55,7 @@ public class DailyShiftService {
         // от кого (именительный)
         if (data.getPetitioner() != null) {
             templateData.put("petitionerFullPost", nullToEmpty(data.getPetitioner().getPosition()));
-            templateData.put("petitionerRank", nullToEmpty(upperFirst(data.getPetitioner().getRank())));
+            templateData.put("petitionerRank", nullToEmpty(data.getPetitioner().getRank()));
             templateData.put("petitionerFullName", declensionService.getDeclinedShortName(data.getPetitioner(), Case.NOMINATIVE));
         } else {
             templateData.put("petitionerFullPost", "");
@@ -98,12 +98,6 @@ public class DailyShiftService {
             template.close();
             return bos.toByteArray();
         }
-    }
-
-    private static String upperFirst(String s) {
-        if (s == null || s.isBlank()) return "";
-        String trimmed = s.trim();
-        return Character.toUpperCase(trimmed.charAt(0)) + trimmed.substring(1);
     }
 
     private static String nullToEmpty(String s) {

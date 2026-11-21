@@ -8,19 +8,19 @@ public class ExactMatchStrategy implements DeclensionStrategy {
     private final Map<String, String> dictionary = new HashMap<>();
 
     public ExactMatchStrategy() {
-        dictionary.put("Полковник", "Полковнику");
-        dictionary.put("Капитан", "Капитану");
-        dictionary.put("Майор", "Майору");
-        dictionary.put("Лейтенант", "Лейтенанту");
-        dictionary.put("Старший лейтенант", "Старшему лейтенанту");
-        dictionary.put("Сержант", "Сержанту");
-        dictionary.put("Младший сержант", "Младшему сержанту");
-        dictionary.put("Старший сержант", "Старшему сержанту");
+        dictionary.put("Полковник", "полковнику");
+        dictionary.put("Капитан", "капитану");
+        dictionary.put("Майор", "майору");
+        dictionary.put("Лейтенант", "лейтенанту");
+        dictionary.put("Старший лейтенант", "старшему лейтенанту");
+        dictionary.put("Сержант", "сержанту");
+        dictionary.put("Младший сержант", "младшему сержанту");
+        dictionary.put("Старший сержант", "старшему сержанту");
         dictionary.put("Командир", "Командиру");
-        dictionary.put("Младший лейтенант", "Младшему лейтенанту");
-        dictionary.put("Прапорщик", "Прапорщику");
-        dictionary.put("Старший прапорщик", "Старшему прапорщику");
-        dictionary.put("Подполковник", "Подполковнику");
+        dictionary.put("Младший лейтенант", "младшему лейтенанту");
+        dictionary.put("Прапорщик", "прапорщику");
+        dictionary.put("Старший прапорщик", "старшему прапорщику");
+        dictionary.put("Подполковник", "подполковнику");
 
         dictionary.put("Заместитель", "Заместителю");
         dictionary.put("Начальник", "Начальнику");
