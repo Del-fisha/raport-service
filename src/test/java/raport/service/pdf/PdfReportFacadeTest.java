@@ -7,7 +7,9 @@ import raport.model.DailyShiftRaportData;
 import raport.model.RaportData;
 import raport.service.compensatory_time.CompensatoryTimeService;
 import raport.service.daily_shift.DailyShiftService;
+import raport.service.financial_assistance.FinancialAssistanceService;
 import raport.service.service_book.ServiceBookSupplementService;
+import raport.service.shift_transfer.ShiftTransferService;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -35,7 +37,8 @@ class PdfReportFacadeTest {
 
         when(compensatory.generateAndSaveReport(any(RaportData.class))).thenReturn(docx.toString());
 
-        PdfReportFacade facade = new PdfReportFacade(compensatory, dailyShift, serviceBook, converter);
+        PdfReportFacade facade = new PdfReportFacade(
+                compensatory, dailyShift, serviceBook, mock(ShiftTransferService.class), mock(FinancialAssistanceService.class), converter);
 
         GeneratedFile out = facade.createOtgulPdf(new RaportData());
 
@@ -62,7 +65,8 @@ class PdfReportFacadeTest {
 
         when(dailyShift.generateAndSaveReport(any(DailyShiftRaportData.class))).thenReturn(docx.toString());
 
-        PdfReportFacade facade = new PdfReportFacade(compensatory, dailyShift, serviceBook, converter);
+        PdfReportFacade facade = new PdfReportFacade(
+                compensatory, dailyShift, serviceBook, mock(ShiftTransferService.class), mock(FinancialAssistanceService.class), converter);
 
         GeneratedFile out = facade.createSutkiPdf(new DailyShiftRaportData());
 

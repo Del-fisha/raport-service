@@ -12,4 +12,5 @@ public class RaportData {
     private PersonDto interceder;
     private String reportDate;
     private String dayOffDate;
+    private String petitionDate;
 }

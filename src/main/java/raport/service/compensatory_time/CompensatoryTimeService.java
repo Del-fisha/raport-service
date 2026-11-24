@@ -38,6 +38,7 @@ public class CompensatoryTimeService {
         templateData.put("employeeRank", data.getEmployee().getRank());
         templateData.put("employeeFullName", declensionService.getDeclinedShortName(data.getEmployee(), Case.NOMINATIVE));
         templateData.put("reportDate", data.getReportDate());
+        templateData.put("petitionDate", data.getPetitionDate() == null ? "" : data.getPetitionDate());
 
         if (data.getInterceder() != null) {
             templateData.put("petitionerFullPost", data.getInterceder().getPosition());

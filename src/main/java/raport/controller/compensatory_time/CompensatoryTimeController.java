@@ -1,7 +1,6 @@
 package raport.controller.compensatory_time;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +12,7 @@ import raport.model.ServiceBookSupplementData;
 import raport.service.compensatory_time.CompensatoryTimeService;
 import raport.service.pdf.GeneratedFile;
 import raport.service.pdf.PdfReportFacade;
+import raport.service.pdf.PdfResponses;
 import raport.service.service_book.ServiceBookSupplementService;
 
 import java.io.IOException;
@@ -44,10 +44,7 @@ public class CompensatoryTimeController {
     public ResponseEntity<byte[]> createCompensatoryTimeReportPdf(@RequestBody RaportData request) {
         try {
             GeneratedFile pdf = pdfReportFacade.createOtgulPdf(request);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_PDF)
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + pdf.fileName() + "\"")
-                    .body(pdf.bytes());
+            return PdfResponses.inline(pdf);
         } catch (IOException e) {
             return ResponseEntity.internalServerError()
                     .contentType(MediaType.TEXT_PLAIN)
@@ -77,10 +74,7 @@ public class CompensatoryTimeController {
     public ResponseEntity<byte[]> createServiceBookSupplementPdf(@RequestBody ServiceBookSupplementData request) {
         try {
             GeneratedFile pdf = pdfReportFacade.createServiceBookSupplementPdf(request);
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_PDF)
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + pdf.fileName() + "\"")
-                    .body(pdf.bytes());
+            return PdfResponses.inline(pdf);
         } catch (IOException e) {
             return ResponseEntity.internalServerError()
                     .contentType(MediaType.TEXT_PLAIN)
