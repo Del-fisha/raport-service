@@ -9,11 +9,12 @@ COPY src ./src
 RUN mvn -B -DskipTests package
 
 ## Runtime stage
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
-RUN apt-get update \
+RUN sed -i 's|http://archive.ubuntu.com/ubuntu|http://mirror.yandex.ru/ubuntu|g; s|http://security.ubuntu.com/ubuntu|http://mirror.yandex.ru/ubuntu|g' /etc/apt/sources.list \
+    && apt-get update \
     && apt-get install -y --no-install-recommends \
         libreoffice-writer \
         libreoffice-core \
@@ -30,4 +31,3 @@ EXPOSE 8082
 ENV JAVA_OPTS=""
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar /app/app.jar"]
-
